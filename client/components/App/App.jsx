@@ -3,14 +3,15 @@ import styles from "./App.css";
 
 export default class App extends React.Component {
 
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
+		this.state = {
+		};
 		this.getTopArtists = this.getTopArtists.bind(this);
 		this.getTopSongs = this.getTopSongs.bind(this);
 		this.fetchTrackLyrics = this.fetchTrackLyrics.bind(this);
 		this.fetchTrackId = this.fetchTrackId.bind(this);
 		this.getTrackDetails = this.getTrackDetails.bind(this);
-
 	}
 	// get username method
 
@@ -39,11 +40,11 @@ export default class App extends React.Component {
 	}
 
 	// get top songs method
-	getTopSongs(topFive, resolve, reject){
-		console.log(topFive);
+	getTopSongs(artistName, resolve, reject){
+		console.log(artistName);
 		let topFiveTracks = [];
 		const apiKey = "bda062e0447e46d6e98a08f5fc675af7";
-		const url = "http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist="+topFive[0]+"&api_key="+apiKey+"&format=json";
+		const url = "http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist="+artistName+"&api_key="+apiKey+"&format=json";
 		console.log("fetching top tracks for the artists");
 		fetch(url)
 		.then((resp)=>resp.json())
@@ -75,9 +76,9 @@ export default class App extends React.Component {
 			.then(function(data){
 				// retrieve response obj
 				const trackList = data.message.body.track_list;
-				console.log(trackList);
+			//	console.log(trackList);
 				const filtered = trackList.filter(removeRemixes);
-				console.log(filtered);
+			//	console.log(filtered);
 				if(filtered.length > 0) resolve(filtered[0].track.track_id); 
 				else reject("No non-remixes found"); 
 			}) 
@@ -97,15 +98,20 @@ export default class App extends React.Component {
 	fetchTrackLyrics(id) {
 		
 		const apiKey = "8e56e3fe5dc95068f3d351f91b2b1d56";
-
+		const self = this;
 		console.log("Fetching Lyrics");
 		const url = "http://api.musixmatch.com/ws/1.1/track.snippet.get?track_id="+id+"&apikey="+apiKey;
 
 		fetch(url)
 		.then((resp)=>resp.json())
 		.then(function(data){
-			console.log(data.message.body.snippet.snippet_body);
+			let snippet = data.message.body.snippet.snippet_body;
 			console.log("id: "+id);
+			console.log("snippet: "+snippet);
+			console.log(self.state);
+			const currentLyrics = self.state.lyrics;
+			currentLyrics.push(snippet);
+			self.setState({lyrics: currentLyrics});
 		}) 
 		.catch(function(error) {
     		console.log(error);
@@ -139,15 +145,17 @@ export default class App extends React.Component {
 	}
 
 	componentDidMount(){
-		//this.getTrackDetails();
+		this.setState({lyrics: []});
+		this.getTrackDetails();
 		this.getArtistDetails();
 	}
 
 	render() {
-		//this.getTopSongs();
+		//console.log("lyrics state: "+this.state.lyrics);
+		this.getTopSongs();
 		return (
         	<h1 className={styles.test}>
-        		
+
         	</h1>
 		);
 	}
