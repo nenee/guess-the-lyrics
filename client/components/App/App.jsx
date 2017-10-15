@@ -13,8 +13,8 @@ export default class App extends React.Component {
 	fetchTrackId(resolve, reject){
 		
 			const apiKey = "8e56e3fe5dc95068f3d351f91b2b1d56";
-			var artistName = "Taylor Swift";
-			var trackName = "Look What You Made Me Do";
+			let artistName = "Katy Perry";
+			let trackName = "I Kissed A Girl";
 
 			const url = "http://api.musixmatch.com/ws/1.1/track.search?q_artist="+artistName+"&q_track="+trackName+"&apikey="+apiKey;
 			console.log("Fetching track ID");
@@ -23,27 +23,28 @@ export default class App extends React.Component {
 			.then((resp)=>resp.json())
 			.then(function(data){
 				// retrieve response obj
-				const response = data.message.body.track_list;
-				console.log(response);
-				for(let track of response){
-					try {
-						let { track_id, track_name } = track.track;
-						console.log(track_id);
-						console.log(track_name);
-						resolve(track_id);
-					} catch(error){
-						throw error;
-					}
-				}
+				const trackList = data.message.body.track_list;
+				console.log(trackList);
+				const filtered = trackList.filter(removeRemixes);
+				console.log(filtered);
+				if(filtered.length > 0) resolve(filtered[0].track.track_id); 
+				else reject("No non-remixes found"); 
 			}) 
 			.catch(function(error) {
 	    		reject(error);
 	  		});
 		
-
+			function removeRemixes(title){
+				let {track_name } = title.track;
+				if(track_name.toLowerCase().indexOf("remix") > -1) return false;
+				if(track_name.toLowerCase().indexOf("rmx") > -1) return false;
+				if(track_name.toLowerCase().indexOf("mix") > -1) return false;
+				return true;
+			}
 	}
 
 	fetchTrackLyrics(id) {
+		
 		const apiKey = "8e56e3fe5dc95068f3d351f91b2b1d56";
 
 		console.log("Fetching Lyrics");
@@ -53,6 +54,7 @@ export default class App extends React.Component {
 		.then((resp)=>resp.json())
 		.then(function(data){
 			console.log(data);
+			console.log("id: "+id);
 		}) 
 		.catch(function(error) {
     		console.log(error);
